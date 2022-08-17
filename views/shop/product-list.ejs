@@ -6,7 +6,7 @@
         <%- include('../includes/navigation.ejs') %>
 
             <main>
-                <% if (prods.length > 0) { %>
+                <% if (prods.length> 0) { %>
                     <div class="grid">
                         <% for (let product of prods) { %>
                             <article class="card product-item">
@@ -19,7 +19,7 @@
                                     <img src="/<%= product.imageUrl %>" alt="<%= product.title %>">
                                 </div>
                                 <div class="card__content">
-                                    <h2 class="product__price">$
+                                    <h2 class="product__price">₦
                                         <%= product.price %>
                                     </h2>
                                     <p class="product__description">
@@ -30,15 +30,16 @@
                                     <a class="btn" href="/products/<%= product.id %>">Details</a>
                                     <% if (isAuthenticated) { %>
                                         <%- include("../includes/add-to-cart.ejs", {product}) %>
-                                    <% } %>
+                                            <% } %>
 
                                 </div>
                             </article>
                             <% } %>
                     </div>
-                    <%- include("../includes/pagination.ejs", {currentPage, nextPage, previousPage, lastPage, hasNextPage, hasPreviousPage}) %>
-                    <% } else { %>
-                        <h1>No Products Found!</h1>
-                        <% } %>
+                    <%- include("../includes/pagination.ejs", {currentPage, nextPage, previousPage, lastPage,
+                        hasNextPage, hasPreviousPage}) %>
+                        <% } else { %>
+                            <h1>No Products Found!</h1>
+                            <% } %>
             </main>
             <%- include('../includes/end.ejs') %>

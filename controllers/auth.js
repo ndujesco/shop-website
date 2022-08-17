@@ -166,6 +166,7 @@ exports.getReset = (req, res, next) => {
 };
 
 exports.postReset = (req, res, next) => {
+  const host = req.headers.host;
   const { email } = req.body;
   crypto.randomBytes(10, (err, buf) => {
     if (err) {
@@ -190,7 +191,7 @@ exports.postReset = (req, res, next) => {
               subject: "Password reset",
               msg: `
                     <p>You requested a password reset</p>
-                    <p> Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password </p>
+                    <p> Click this <a href="https://${host}/reset/${token}">link</a> to set a new password </p>
                     <b>The link expires after an hour</b>
                 `,
             });

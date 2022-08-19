@@ -122,25 +122,20 @@ exports.postEditProduct = async (req, res, next) => {
 
     if (image) {
       product.imageLocal = "/" + image.path.replace("\\", "/");
-      (async function () {
-        try {
-          fileHelper.deleteFile(product.imageId);
-          const result = await cloudinary.uploader.upload(image.path);
-          const imageUrl = result.secure_url;
-          const imageId = result.public_id;
-          product.imageUrl = imageUrl;
-          product.imageId = imageId;
-          await product.save();
-          console.log("UPDATE COMPLETE!");
-        } catch (err) {
-          const error = new Error(err);
-          error.httpStatusCode = 500;
-          return next(error);
-        }
-      })();
+      fileHelper.deleteFile(product.imageId);
     }
     await product.save();
     res.redirect("/admin/products");
+
+    if (image) {
+      const result = await cloudinary.uploader.upload(image.path);
+      const imageUrl = result.secure_url;
+      const imageId = result.public_id;
+      product.imageUrl = imageUrl;
+      product.imageId = imageId;
+      console.log("UPDATE COMPLETE!");
+      await product.save();
+    }
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;

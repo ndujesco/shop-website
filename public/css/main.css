@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700');
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,700");
 
 * {
   box-sizing: border-box;
@@ -8,8 +8,7 @@ body {
   padding: 0;
   margin: 0;
   /* font-family: 'Open Sans', sans-serif; */
-  font-family: 'Finlandica', sans-serif;
-
+  font-family: "Finlandica", sans-serif;
 }
 
 main {
@@ -234,7 +233,7 @@ form {
   color: white;
 }
 
-.user-message{
+.user-message {
   margin: auto;
   width: 90%;
   border: 1px solid #4771fa;
@@ -248,7 +247,6 @@ form {
   border-color: red;
   background-color: #ffb0b0;
   color: red;
-
 }
 
 .pagination {
@@ -259,7 +257,7 @@ form {
 .pagination a {
   text-decoration: none;
   color: #00695c;
-  padding: .5rem;
+  padding: 0.5rem;
   border: 1px solid #00695c;
   margin: 0 1rem;
 }
@@ -268,9 +266,8 @@ form {
 .pagination a:active,
 .pagination a.active {
   background: #00695c;
-  color:white
+  color: white;
 }
-
 
 @media (min-width: 768px) {
   .main-header__nav {
@@ -283,6 +280,5 @@ form {
 
   .user-message {
     width: 30rem;
-
   }
 }

@@ -13,9 +13,9 @@
                 </div>
                 <h2> ₦<%= product.price %>
                 </h2>
-                <p>
-                    <%= product.description %>
-                </p>
+                <div class="product__description">
+                    <%- product.description %>
+                </div>
                 <% if (isAuthenticated) { %>
                     <%- include("../includes/add-to-cart.ejs", {product}) %>
                         <% } %>

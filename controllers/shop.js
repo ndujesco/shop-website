@@ -19,7 +19,12 @@ exports.getProducts = (req, res, next) => {
         .skip((page - 1) * ITEMS_PER_PAGE)
         .limit(ITEMS_PER_PAGE);
     })
-    .then((products) => {
+    .then((prods) => {
+      const products = prods.map((product) => {
+        const fileExists = fs.existsSync(product.imageLocal.substring(1));
+        const image = fileExists ? product.imageLocal : product.imageUrl;
+        return { ...product._doc, image };
+      });
       res.render("shop/product-list", {
         prods: products,
         pageTitle: "Products",
@@ -39,10 +44,14 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
-exports.getProduct = (req, res) => {
+exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
   Product.findById(prodId) // {_id: String}
-    .then((product) => {
+    .then((prod) => {
+      const fileExists = fs.existsSync(prod.imageLocal.substring(1));
+      const image = fileExists ? prod.imageLocal : prod.imageUrl;
+      const product = { ...prod._doc, image };
+      console.log(product);
       res.render("shop/product-detail", {
         product,
         pageTitle: product.title,
@@ -69,7 +78,12 @@ exports.getIndex = (req, res, next) => {
         .skip((page - 1) * ITEMS_PER_PAGE)
         .limit(ITEMS_PER_PAGE);
     })
-    .then((products) => {
+    .then((prods) => {
+      const products = prods.map((product) => {
+        const fileExists = fs.existsSync(product.imageLocal.substring(1));
+        const image = fileExists ? product.imageLocal : product.imageUrl;
+        return { ...product._doc, image };
+      });
       res.render("shop/index", {
         prods: products,
         pageTitle: "Shop",
@@ -107,7 +121,7 @@ exports.getCart = (req, res, next) => {
     });
 };
 
-exports.postCart = (req, res) => {
+exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
   Product.findById(prodId)
     .then((product) => {
@@ -123,7 +137,7 @@ exports.postCart = (req, res) => {
     });
 };
 
-exports.postCartDeleteProduct = (req, res) => {
+exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
   req.user
     .removeFromCart(prodId)

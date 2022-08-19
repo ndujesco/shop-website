@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
+const fs = require("fs");
 
 const fileHelper = require("../util/file");
 const Product = require("../models/product");
@@ -33,7 +34,6 @@ exports.postAddProduct = async (req, res, next) => {
   }
 
   if (!errors.isEmpty()) {
-    fileHelper.deleteFile(image.path);
     return res.status(422).render("admin/edit-product", {
       pageTitle: "Add Product",
       path: "/admin/add-product",
@@ -44,22 +44,24 @@ exports.postAddProduct = async (req, res, next) => {
       validationErrors: errors.array(),
     });
   }
-
   try {
-    const result = await cloudinary.uploader.upload(image.path);
-    const imageUrl = result.secure_url;
-    const imageId = result.public_id;
-
+    const imageLocal = "/" + req.file.path.replace("\\", "/");
     const product = new Product({
       title,
-      imageUrl,
-      imageId,
+      imageLocal,
       price,
       description,
       userId: req.user,
     });
-    product.save();
+    await product.save();
     res.redirect("/admin/products");
+
+    const result = await cloudinary.uploader.upload(req.file.path);
+    const imageUrl = result.secure_url;
+    const imageId = result.public_id;
+    product.imageUrl = imageUrl;
+    product.imageId = imageId;
+    product.save();
   } catch (err) {
     const error = new Error("The product, e no validate");
     error.httpStatusCode = 500;
@@ -92,7 +94,7 @@ exports.getEditProduct = (req, res, next) => {
     });
 };
 
-exports.postEditProduct = async (req, res) => {
+exports.postEditProduct = async (req, res, next) => {
   const { productId, title, description, price } = req.body;
   const image = req.file;
 
@@ -114,21 +116,25 @@ exports.postEditProduct = async (req, res) => {
 
   try {
     const product = await Product.findById(productId);
-
     product.title = title;
     product.price = price;
     product.description = description;
+
     if (image) {
-      fileHelper.deleteFile(product.imageId);
-      const result = await cloudinary.uploader.upload(image.path);
-      const imageUrl = result.secure_url;
-      const imageId = result.public_id;
-      product.imageUrl = imageUrl;
-      product.imageId = imageId;
-      await product.save();
-      console.log("UPDATED");
-      res.redirect("/admin/products");
+      product.imageLocal = "/" + image.path.replace("\\", "/");
+      (async function () {
+        fileHelper.deleteFile(product.imageId);
+        const result = await cloudinary.uploader.upload(image.path);
+        const imageUrl = result.secure_url;
+        const imageId = result.public_id;
+        product.imageUrl = imageUrl;
+        product.imageId = imageId;
+        await product.save();
+        console.log("UPDATE COMPLETE!");
+      })();
     }
+    await product.save();
+    res.redirect("/admin/products");
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
@@ -144,7 +150,7 @@ exports.deleteProduct = (req, res) => {
       if (!product) {
         return next(new Error("Product not found."));
       }
-      fileHelper.deleteFile(product.imageUrl);
+      fileHelper.deleteFile(product.imageId);
       return Product.deleteOne({ _id: prodId, userId: req.user._id });
     })
     .then((result) => {
@@ -158,7 +164,13 @@ exports.deleteProduct = (req, res) => {
 
 exports.getProducts = (req, res, next) => {
   Product.find({ userId: req.user._id })
-    .then((products) => {
+    .then((prods) => {
+      const products = prods.map((product) => {
+        const fileExists = fs.existsSync(product.imageLocal.substring(1));
+        console.log(fileExists);
+        const image = fileExists ? product.imageLocal : product.imageUrl;
+        return { ...product._doc, image };
+      });
       res.render("admin/products", {
         prods: products,
         pageTitle: "Admin Products",

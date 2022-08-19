@@ -20,6 +20,7 @@ const User = require("./models/user");
 const app = express();
 
 const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.83uvt.mongodb.net/shopDB?retryWrites=true&w=majority`;
+const MONGODB_URI_PRACTICE = "mongodb://localhost:27017/shopDB";
 const store = new MongoDBStore({
   uri: MONGODB_URI,
   collection: "sessions",
@@ -35,7 +36,14 @@ async function main() {
   await mongoose.connect(MONGODB_URI);
 }
 
-const fileStorage = multer.diskStorage({});
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now().toString() + "-" + file.originalname);
+  },
+});
 
 const fileFilter = (req, file, cb) => {
   if (

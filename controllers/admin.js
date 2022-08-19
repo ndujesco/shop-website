@@ -1,8 +1,9 @@
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
-const fileHelper = require("../util/file");
 
+const fileHelper = require("../util/file");
 const Product = require("../models/product");
+const cloudinary = require("../util/cloudinary");
 
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
@@ -15,11 +16,10 @@ exports.getAddProduct = (req, res, next) => {
   });
 };
 
-exports.postAddProduct = (req, res, next) => {
+exports.postAddProduct = async (req, res, next) => {
   const { title, price, description } = req.body;
   const errors = validationResult(req);
   const image = req.file;
-  console.log(image);
   if (!image) {
     return res.status(422).render("admin/edit-product", {
       pageTitle: "Add Product",
@@ -45,24 +45,26 @@ exports.postAddProduct = (req, res, next) => {
     });
   }
 
-  const imageUrl = image.path;
-  const product = new Product({
-    title,
-    imageUrl,
-    price,
-    description,
-    userId: req.user,
-  });
-  product
-    .save()
-    .then((createdProduct) => {
-      res.redirect("/admin/products");
-    })
-    .catch((err) => {
-      const error = new Error("The product, e no validate");
-      error.httpStatusCode = 500;
-      return next(error);
+  try {
+    const result = await cloudinary.uploader.upload(image.path);
+    const imageUrl = result.secure_url;
+    const imageId = result.public_id;
+
+    const product = new Product({
+      title,
+      imageUrl,
+      imageId,
+      price,
+      description,
+      userId: req.user,
     });
+    product.save();
+    res.redirect("/admin/products");
+  } catch (err) {
+    const error = new Error("The product, e no validate");
+    error.httpStatusCode = 500;
+    return next(error);
+  }
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -90,7 +92,7 @@ exports.getEditProduct = (req, res, next) => {
     });
 };
 
-exports.postEditProduct = (req, res) => {
+exports.postEditProduct = async (req, res) => {
   const { productId, title, description, price } = req.body;
   const image = req.file;
 
@@ -110,25 +112,28 @@ exports.postEditProduct = (req, res) => {
     });
   }
 
-  Product.findById(productId)
-    .then((product) => {
-      product.title = title;
-      product.price = price;
-      product.description = description;
-      if (image) {
-        fileHelper.deleteFile(product.imageUrl);
-        product.imageUrl = image.path;
-      }
-      return product.save().then((updated) => {
-        console.log("UPDATED");
-        res.redirect("/admin/products");
-      });
-    })
-    .catch((err) => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
-    });
+  try {
+    const product = await Product.findById(productId);
+
+    product.title = title;
+    product.price = price;
+    product.description = description;
+    if (image) {
+      fileHelper.deleteFile(product.imageId);
+      const result = await cloudinary.uploader.upload(image.path);
+      const imageUrl = result.secure_url;
+      const imageId = result.public_id;
+      product.imageUrl = imageUrl;
+      product.imageId = imageId;
+      await product.save();
+      console.log("UPDATED");
+      res.redirect("/admin/products");
+    }
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
 };
 
 exports.deleteProduct = (req, res) => {

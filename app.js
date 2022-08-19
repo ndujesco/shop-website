@@ -35,14 +35,7 @@ async function main() {
   await mongoose.connect(MONGODB_URI);
 }
 
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "images");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now().toString()}-${file.originalname}`);
-  },
-});
+const fileStorage = multer.diskStorage({});
 
 const fileFilter = (req, file, cb) => {
   if (

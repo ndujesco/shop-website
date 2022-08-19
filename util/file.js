@@ -1,15 +1,7 @@
-const fs = require("fs");
+const cloudinary = require("./cloudinary.js");
 
-const deleteFile = async (filePath) => {
-  try {
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        throw err;
-      }
-    });
-  } catch (err) {
-    throw new Error(err);
-  }
+const deleteFile = async (imageId) => {
+  await cloudinary.uploader.destroy(imageId);
 };
 
 exports.deleteFile = deleteFile;

@@ -125,16 +125,17 @@ exports.postEditProduct = async (req, res, next) => {
       fileHelper.deleteFile(product.imageId);
     }
     await product.save();
+    console.log(111);
     res.redirect("/admin/products");
 
     if (image) {
-      const result = await cloudinary.uploader.upload(image.path);
+      const result = await cloudinary.uploader.upload(req.file.path);
       const imageUrl = result.secure_url;
       const imageId = result.public_id;
       product.imageUrl = imageUrl;
       product.imageId = imageId;
       console.log("UPDATE COMPLETE!");
-      await product.save();
+      product.save();
     }
   } catch (err) {
     const error = new Error(err);

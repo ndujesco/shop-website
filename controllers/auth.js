@@ -267,3 +267,5 @@ exports.postNewPassword = (req, res, next) => {
       return next(error);
     });
 };
+
+// https://startbootstrap.com/previews/clean-blog/

@@ -1,4 +1,4 @@
-# ONLINE SHOP
+# ONLINE SHOP.
 
 
 ## Screenshots
